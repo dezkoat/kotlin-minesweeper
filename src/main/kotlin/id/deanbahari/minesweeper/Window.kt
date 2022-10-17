@@ -1,7 +1,6 @@
 package id.deanbahari.minesweeper
 
 import org.liquidengine.cbchain.impl.ChainErrorCallback
-import org.liquidengine.legui.DefaultInitializer
 import org.liquidengine.legui.animation.AnimatorProvider
 import org.liquidengine.legui.component.Frame
 import org.liquidengine.legui.listener.processor.EventProcessorProvider
@@ -27,7 +26,7 @@ open class Window {
     private lateinit var keeper: CallbackKeeper
     private lateinit var systemEventProcessor: SystemEventProcessor
     private lateinit var frame: Frame
-    private lateinit var initializer: DefaultInitializer
+    private lateinit var context: Context
 
     private lateinit var mainThread: Thread
     private lateinit var rendererThread: Thread
@@ -80,8 +79,8 @@ open class Window {
         glfwShowWindow(window)
         createGuiElements(frame)
 
+        context = Context(window)
         keeper = DefaultCallbackKeeper()
-        initializer = DefaultInitializer(window, frame)
 
         CallbackKeeper.registerCallbacks(window, keeper)
         keeper.chainKeyCallback.add(glfwKeyCallbackI)
@@ -98,8 +97,7 @@ open class Window {
         val glCapabilities = createCapabilities()
         glfwSwapInterval(0)
 
-        val initializer = DefaultInitializer(window, frame)
-        val renderer = initializer.renderer
+        val renderer = NvgRenderer()
         renderer.initialize()
 
         glfwMakeContextCurrent(window)
@@ -108,15 +106,16 @@ open class Window {
 
         while (running) {
             try {
-                initializer.context.updateGlfwWindow()
-                val frameBufferSize = initializer.context.framebufferSize
+                context.updateGlfwWindow()
+                val frameBufferSize = context.framebufferSize
 
                 glClearColor(1.0f, 1.0f, 1.0f, 1.0f)
                 glViewport(0, 0, frameBufferSize.x, frameBufferSize.y)
                 glClear(GL_COLOR_BUFFER_BIT or GL_STENCIL_BUFFER_BIT)
 
-                renderer.render(frame, initializer.context)
+                renderer.render(frame, context)
 
+                glfwPollEvents()
                 glfwSwapBuffers(window)
                 update()
 
@@ -138,9 +137,10 @@ open class Window {
     private fun startSystemEventProcessor() {
         eventProcessorThread = Thread({
             while (running) {
-                systemEventProcessor.processEvents(frame, initializer.context)
+                systemEventProcessor.processEvents(frame, context)
             }
         }, "GUI_SYSTEM_EVENT_PROCESSOR")
+        eventProcessorThread.start()
     }
 
     private fun startLeguiEventProcessor() {
@@ -149,6 +149,7 @@ open class Window {
                 EventProcessorProvider.getInstance().processEvents()
             }
         }, "GUI_EVENT_PROCESSOR")
+        leguiEventProcessorThread.start()
     }
 
     private fun handleSystemEvents() {

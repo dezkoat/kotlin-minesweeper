@@ -1,17 +1,17 @@
 package id.deanbahari.minesweeper
 
-import org.liquidengine.legui.component.Button
-import org.liquidengine.legui.component.Label
-import org.liquidengine.legui.component.Panel
-import org.liquidengine.legui.component.Tooltip
+import org.liquidengine.legui.component.*
 import org.liquidengine.legui.component.event.tooltip.TooltipTextSizeChangeEvent
 import org.liquidengine.legui.component.optional.align.HorizontalAlign
 import org.liquidengine.legui.component.optional.align.VerticalAlign
 import org.liquidengine.legui.event.FocusEvent
+import org.liquidengine.legui.event.KeyEvent
 import org.liquidengine.legui.event.MouseClickEvent
 import org.liquidengine.legui.event.MouseClickEvent.MouseClickAction
 import org.liquidengine.legui.listener.FocusEventListener
+import org.liquidengine.legui.listener.KeyEventListener
 import org.liquidengine.legui.listener.MouseClickEventListener
+import org.lwjgl.glfw.GLFW
 
 
 class Gui(width: Int, height: Int) : Panel(0f, 0f, width.toFloat(), height.toFloat()) {
@@ -24,6 +24,26 @@ class Gui(width: Int, height: Int) : Panel(0f, 0f, width.toFloat(), height.toFlo
         mouseTargetLabel = Label("Hello Label 1", 10f, (height - 30).toFloat(), (width - 20).toFloat(), 20f)
         this.add(mouseTargetLabel)
         this.add(createButtonWithTooltip())
+
+        val textInput = TextInput(250f, 130f, 100f, 30f)
+        textInput.listenerMap.addListener(
+            KeyEvent::class.java,
+            KeyEventListener { event: KeyEvent<*> ->
+                if (event.key == GLFW.GLFW_KEY_F1 && event.action == GLFW.GLFW_RELEASE) {
+                    textInput.style.horizontalAlign = HorizontalAlign.LEFT
+                } else if (event.key == GLFW.GLFW_KEY_F2 && event.action == GLFW.GLFW_RELEASE) {
+                    textInput.style.horizontalAlign = HorizontalAlign.CENTER
+                } else if (event.key == GLFW.GLFW_KEY_F3 && event.action == GLFW.GLFW_RELEASE) {
+                    textInput.style.horizontalAlign = HorizontalAlign.RIGHT
+                } else if (event.key == GLFW.GLFW_KEY_F4 && event.action == GLFW.GLFW_RELEASE) {
+                    textInput.style.verticalAlign = VerticalAlign.TOP
+                } else if (event.key == GLFW.GLFW_KEY_F5 && event.action == GLFW.GLFW_RELEASE) {
+                    textInput.style.verticalAlign = VerticalAlign.MIDDLE
+                } else if (event.key == GLFW.GLFW_KEY_F6 && event.action == GLFW.GLFW_RELEASE) {
+                    textInput.style.verticalAlign = VerticalAlign.BOTTOM
+                }
+            })
+        this.add(textInput)
     }
 
     private fun createNinePanels() {
@@ -81,14 +101,14 @@ class Gui(width: Int, height: Int) : Panel(0f, 0f, width.toFloat(), height.toFlo
         ) /*button.getStyle().getBackground().setColor(new Vector4f(1));*/
 
         button.listenerMap
-            .addListener(MouseClickEvent::class.java, MouseClickEventListener { println("clicked") })
+            .addListener(MouseClickEvent::class.java, MouseClickEventListener { println(it) })
         val tooltip = Tooltip("Just button")
         button.tooltip = tooltip
-        tooltip.setPosition(0f, 25f)
-        tooltip.size.set(50f, 60f)
+        tooltip.setPosition(25f, 25f)
+        tooltip.size.set(200f, 200f)
         tooltip.style.setPadding(4f)
         tooltip.listenerMap
-            .addListener(TooltipTextSizeChangeEvent::class.java) { e -> tooltip.setSize(50f, e.height) }
+            .addListener(TooltipTextSizeChangeEvent::class.java) { e -> tooltip.setSize(200f, 200f) }
         val idv = intArrayOf(0)
         button.listenerMap
             .addListener(
